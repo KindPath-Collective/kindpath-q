@@ -1,6 +1,8 @@
 #include "shared/JuceIncludes.h"
 #include "ui/KindPathMainComponent.h"
+#include "ui/LoginComponent.h"
 #include "core/analysis/AnalysisEngine.h"
+#include "core/auth/UserAuth.h"
 #include "core/education/EducationCards.h"
 
 namespace
@@ -18,6 +20,7 @@ namespace
     }
 }
 
+// StandaloneMainComponent is the audio-capable main view, shown after login.
 class StandaloneMainComponent : public juce::AudioAppComponent
 {
 public:
@@ -155,7 +158,7 @@ public:
                              DocumentWindow::allButtons)
         {
             setUsingNativeTitleBar(true);
-            setContentOwned(new StandaloneMainComponent(), true);
+            showLoginScreen();
             centreWithSize(getWidth(), getHeight());
             setVisible(true);
         }
@@ -164,6 +167,27 @@ public:
         {
             juce::JUCEApplication::getInstance()->systemRequestedQuit();
         }
+
+    private:
+        void showLoginScreen()
+        {
+            auto* login = new kindpath::ui::LoginComponent(userAuth);
+            login->setSize(600, 480);
+
+            login->onAuthSuccess = [this](const juce::String& /*email*/)
+            {
+                showMainApp();
+            };
+
+            setContentOwned(login, true);
+        }
+
+        void showMainApp()
+        {
+            setContentOwned(new StandaloneMainComponent(), true);
+        }
+
+        kindpath::auth::UserAuth userAuth;
     };
 
 private:

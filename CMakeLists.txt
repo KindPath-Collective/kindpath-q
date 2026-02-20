@@ -14,6 +14,7 @@ endif()
 
 add_library(kindpath_core STATIC
     core/analysis/AnalysisEngine.cpp
+    core/auth/UserAuth.cpp
     core/education/EducationCards.cpp
 )
 
@@ -21,10 +22,12 @@ target_include_directories(kindpath_core PUBLIC ${CMAKE_SOURCE_DIR})
 
 target_link_libraries(kindpath_core PUBLIC
     juce::juce_audio_basics
+    juce::juce_cryptography
     juce::juce_dsp
 )
 
 add_library(kindpath_ui STATIC
+    ui/LoginComponent.cpp
     ui/TransportBar.cpp
     ui/WaveformView.cpp
     ui/AnalysisPanel.cpp
