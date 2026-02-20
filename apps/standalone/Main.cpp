@@ -28,6 +28,7 @@ public:
 
         addAndMakeVisible(mainView);
         mainView.setOnLoadFile([this] { loadFile(); });
+        mainView.setOnFileDrop([this](const juce::File& file) { loadFromFile(file); });
         mainView.setLoadEnabled(true);
         mainView.setMonoState(false);
 
@@ -70,33 +71,38 @@ public:
     }
 
 private:
+    void loadFromFile(const juce::File& file)
+    {
+        if (! file.existsAsFile())
+            return;
+
+        std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
+        if (reader == nullptr)
+        {
+            mainView.setFileName("Unsupported file");
+            mainView.clearWaveform();
+            return;
+        }
+
+        const auto sourceSampleRate = reader->sampleRate;
+        auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader.release(), true);
+        transportSource.stop();
+        transportSource.setSource(newSource.get(), 0, nullptr, sourceSampleRate);
+        readerSource = std::move(newSource);
+        transportSource.start();
+
+        mainView.setFileName(file.getFileName());
+        mainView.setWaveformFile(file);
+    }
+
     void loadFile()
     {
-        fileChooser = std::make_unique<juce::FileChooser>("Select an audio file", juce::File{}, "*.wav;*.aiff;*.aif");
+        fileChooser = std::make_unique<juce::FileChooser>("Select an audio file", juce::File{},
+            "*.wav;*.aiff;*.aif;*.mp3;*.flac;*.ogg;*.caf;*.mp4;*.m4a");
         const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
         fileChooser->launchAsync(flags, [this](const juce::FileChooser& chooser)
         {
-            const auto file = chooser.getResult();
-            if (! file.existsAsFile())
-                return;
-
-            std::unique_ptr<juce::AudioFormatReader> reader(formatManager.createReaderFor(file));
-            if (reader == nullptr)
-            {
-                mainView.setFileName("Unsupported file");
-                mainView.clearWaveform();
-                return;
-            }
-
-            const auto sourceSampleRate = reader->sampleRate;
-            auto newSource = std::make_unique<juce::AudioFormatReaderSource>(reader.release(), true);
-            transportSource.stop();
-            transportSource.setSource(newSource.get(), 0, nullptr, sourceSampleRate);
-            readerSource = std::move(newSource);
-            transportSource.start();
-
-            mainView.setFileName(file.getFileName());
-            mainView.setWaveformFile(file);
+            loadFromFile(chooser.getResult());
         });
     }
 

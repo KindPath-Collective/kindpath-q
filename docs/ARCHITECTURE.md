@@ -16,6 +16,14 @@
 - UI polls snapshots on a timer and renders meters + spectrum bars.
 - Education cards are loaded from JSON and rotated on user interaction.
 
+## File Import / Sharing
+
+- Accepted formats: WAV, AIFF, MP3, FLAC, OGG, CAF, MP4/M4A (whatever `registerBasicFormats()` plus platform decoders support).
+- **Standalone**: "Load Audio" button opens a file picker; files can also be dragged from Finder directly onto the waveform area.
+- **Plugin**: "Load Audio" button and drag-and-drop are both enabled for a *reference waveform* — the file is displayed visually only. Live audio analysis continues from the DAW input bus via `processBlock`.
+- `WaveformView` implements `juce::FileDragAndDropTarget` and exposes an `onFileDropped` callback; `KindPathMainComponent` exposes `setOnFileDrop` to wire callers in.
+
+
 ## Shared Boundaries
 - `AnalysisEngine` is shared across app and plugin.
 - UI is shared and wired to analysis + education data in each target.
