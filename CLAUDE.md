@@ -1,4 +1,16 @@
 # CLAUDE.md — KindPath Q
+
+## Session Init Protocol
+
+Before reading code or making changes, run:
+```bash
+cat ~/.kindpath/HANDOVER.md
+python3 ~/.kindpath/kp_memory.py dump --domain gotcha
+python3 ~/.kindpath/kp_memory.py dump
+```
+
+---
+
 ## Instructions for Claude Code
 
 Read this file completely before touching a single line of code.
