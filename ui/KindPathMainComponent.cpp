@@ -1,9 +1,12 @@
 #include "KindPathMainComponent.h"
+#include "../plugins/kindpath-q/PluginProcessor.h"
 
 namespace kindpath::ui
 {
-    KindPathMainComponent::KindPathMainComponent(kindpath::analysis::AnalysisEngine& engine)
+    KindPathMainComponent::KindPathMainComponent(kindpath::analysis::AnalysisEngine& engine,
+                                                 KindPathQAudioProcessor* processor)
         : analysisEngine(engine),
+          audioProcessor(processor),
           waveformView(formatManager)
     {
         formatManager.registerBasicFormats();
@@ -71,7 +74,7 @@ namespace kindpath::ui
         transportBar.setBounds(area.removeFromTop(topHeight));
 
         auto rightArea = area.removeFromRight(sideWidth).reduced(8);
-        analysisPanel.setBounds(rightArea.removeFromTop(220));
+        analysisPanel.setBounds(rightArea.removeFromTop(340));
         rightArea.removeFromTop(8);
         educationPanel.setBounds(rightArea);
 
@@ -81,5 +84,10 @@ namespace kindpath::ui
     void KindPathMainComponent::timerCallback()
     {
         analysisPanel.setSnapshot(analysisEngine.getSnapshot());
+
+        // Poll the processor for a completed deep fingerprint result.
+        // hasFingerprintResult() is atomic — safe to call from the UI thread.
+        if (audioProcessor != nullptr && audioProcessor->hasFingerprintResult())
+            analysisPanel.setFingerprint(audioProcessor->getLatestFingerprint());
     }
 }

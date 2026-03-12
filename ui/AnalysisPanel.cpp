@@ -84,6 +84,84 @@ namespace kindpath::ui
         area.removeFromTop(8);
         g.setColour(juce::Colour(0xffa7f3d0));
         g.drawText("Feel tags: " + currentSnapshot.feelTags.joinIntoString(", "), area.removeFromTop(18), juce::Justification::left, false);
+
+        // Deep fingerprint section — only shown after a full track cycle completes.
+        if (hasFingerprintData && area.getHeight() > 20)
+        {
+            area.removeFromTop(12);
+            g.setColour(juce::Colour(0xff2f3440));
+            g.fillRect(area.removeFromTop(1)); // divider
+            area.removeFromTop(6);
+            paintFingerprintSection(g, area);
+        }
+    }
+
+    void AnalysisPanel::setFingerprint(const KindPath::FingerprintResult& result)
+    {
+        currentFingerprint = result;
+        hasFingerprintData = true;
+        repaint();
+    }
+
+    void AnalysisPanel::paintFingerprintSection(juce::Graphics& g, juce::Rectangle<int> area)
+    {
+        // Section heading.
+        g.setColour(juce::Colour(0xff64748b));
+        g.setFont(11.0f);
+        g.drawText("FINGERPRINT", area.removeFromTop(14), juce::Justification::left, false);
+        area.removeFromTop(4);
+
+        // Era: top match by confidence.
+        if (!currentFingerprint.eraMatches.empty())
+        {
+            const auto& era = currentFingerprint.eraMatches.front();
+            const juce::String eraText = "Era: " + juce::String(era.name)
+                + "  (" + juce::String(static_cast<int>(era.confidence * 100)) + "%)"; 
+            g.setColour(juce::Colour(0xffd1d5db));
+            g.setFont(12.0f);
+            g.drawText(eraText, area.removeFromTop(16), juce::Justification::left, false);
+        }
+
+        // Production context summary.
+        if (!currentFingerprint.productionContext.empty())
+        {
+            g.setColour(juce::Colour(0xff9ca3af));
+            g.setFont(11.0f);
+            g.drawText(juce::String(currentFingerprint.productionContext),
+                       area.removeFromTop(14), juce::Justification::left, false);
+        }
+
+        area.removeFromTop(4);
+
+        // Technique matches: show up to two with their psychosomatic notes.
+        g.setFont(11.0f);
+        int shown = 0;
+        for (const auto& tech : currentFingerprint.techniqueMatches)
+        {
+            if (shown >= 2 || area.getHeight() < 28)
+                break;
+
+            // Technique name in amber if it's a manufacturing marker, green if authentic.
+            const bool isManufacturing = [&]() {
+                for (const auto& m : currentFingerprint.manufacturingMarkers)
+                    if (m.find(tech.name) != std::string::npos) return true;
+                return false;
+            }();
+
+            g.setColour(isManufacturing ? juce::Colour(0xfff5a623) : juce::Colour(0xff4ade80));
+            g.drawText(juce::String(tech.name),
+                       area.removeFromTop(14), juce::Justification::left, false);
+
+            if (!tech.psychosomaticNote.empty() && area.getHeight() >= 13)
+            {
+                g.setColour(juce::Colour(0xff6b7280));
+                // Truncate long notes to fit the panel width.
+                juce::String note(tech.psychosomaticNote);
+                if (note.length() > 60) note = note.substring(0, 57) + "...";
+                g.drawText(note, area.removeFromTop(13), juce::Justification::left, false);
+            }
+            ++shown;
+        }
     }
 
     void AnalysisPanel::resized()

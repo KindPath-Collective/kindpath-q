@@ -17,7 +17,7 @@ namespace
 KindPathQAudioProcessorEditor::KindPathQAudioProcessorEditor(KindPathQAudioProcessor& p)
     : AudioProcessorEditor(&p),
       audioProcessor(p),
-      mainView(audioProcessor.getAnalysisEngine())
+      mainView(audioProcessor.getAnalysisEngine(), &audioProcessor)
 {
     addAndMakeVisible(mainView);
     mainView.setLoadEnabled(false);
