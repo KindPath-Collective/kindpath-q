@@ -19,9 +19,13 @@ KindPathQAudioProcessorEditor::KindPathQAudioProcessorEditor(KindPathQAudioProce
       audioProcessor(p),
       mainView(audioProcessor.getAnalysisEngine(), &audioProcessor)
 {
+    formatManager.registerBasicFormats();
+
     addAndMakeVisible(mainView);
-    mainView.setLoadEnabled(false);
-    mainView.setFileName("Live input");
+    mainView.setLoadEnabled(true);
+    mainView.setOnLoadFile([this] { loadFile(); });
+    mainView.setOnFileDrop([this](const juce::File& file) { loadFromFile(file); });
+    mainView.setFileName("Live input — drop a reference file to compare");
     mainView.setMonoState(false);
 
     loadEducationDeck();
@@ -39,6 +43,28 @@ void KindPathQAudioProcessorEditor::paint(juce::Graphics& g)
 void KindPathQAudioProcessorEditor::resized()
 {
     mainView.setBounds(getLocalBounds());
+}
+
+void KindPathQAudioProcessorEditor::loadFromFile(const juce::File& file)
+{
+    if (! file.existsAsFile())
+        return;
+
+    // In the plugin, we display the waveform as a visual reference only.
+    // Live audio analysis continues via processBlock from the DAW input bus.
+    mainView.setFileName(file.getFileName());
+    mainView.setWaveformFile(file);
+}
+
+void KindPathQAudioProcessorEditor::loadFile()
+{
+    fileChooser = std::make_unique<juce::FileChooser>("Select an audio file", juce::File{},
+        "*.wav;*.aiff;*.aif;*.mp3;*.flac;*.ogg;*.caf;*.mp4;*.m4a");
+    const auto flags = juce::FileBrowserComponent::openMode | juce::FileBrowserComponent::canSelectFiles;
+    fileChooser->launchAsync(flags, [this](const juce::FileChooser& chooser)
+    {
+        loadFromFile(chooser.getResult());
+    });
 }
 
 void KindPathQAudioProcessorEditor::loadEducationDeck()

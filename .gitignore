@@ -13,3 +13,4 @@ DerivedData/
 *.wav
 *.aiff
 *.mp3
+_codeql_detected_source_root

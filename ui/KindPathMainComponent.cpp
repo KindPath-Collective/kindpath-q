@@ -60,6 +60,11 @@ namespace kindpath::ui
         waveformView.clear();
     }
 
+    void KindPathMainComponent::setOnFileDrop(std::function<void(const juce::File&)> handler)
+    {
+        waveformView.onFileDropped = std::move(handler);
+    }
+
     void KindPathMainComponent::paint(juce::Graphics& g)
     {
         g.fillAll(juce::Colour(0xff0b0d12));

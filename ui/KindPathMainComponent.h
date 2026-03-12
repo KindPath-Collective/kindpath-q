@@ -29,6 +29,7 @@ namespace kindpath::ui
         void setMonoState(bool enabled);
         void setWaveformFile(const juce::File& file);
         void clearWaveform();
+        void setOnFileDrop(std::function<void(const juce::File&)> handler);
 
         void resized() override;
         void paint(juce::Graphics& g) override;
