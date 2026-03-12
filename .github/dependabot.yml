@@ -1,0 +1,12 @@
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    labels:
+      - "dependencies"
+      - "github-actions"
+
+  # Note: C++ / CMake / submodule dependencies require manual review.
+  # Submodule updates should be done deliberately — see SECURITY.md for guidance.
